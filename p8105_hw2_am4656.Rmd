@@ -7,6 +7,7 @@ output: github_document
 
 ```{r setup, echo=FALSE, message = FALSE}
 library(tidyverse)
+library(readxl)
 ```
 
 # Problem 1
@@ -70,3 +71,12 @@ pivot_longer(
 Thus, there are only **17** stations that serve the A train that are ADA compliant.
 
 ## Problem 2
+
+_Reading Mr. Trash Wheel into R Studio, self-named first sheet in the Excel file, skipping the first row (which is just an image in the original Excel file) and the last row (which appears to be summed column values), using reasonable variable names, omitting rows that do not include dumpster-specific data._
+
+```{r problem 2 data input, echo = FALSE, message = FALSE}
+mr_trash_wheel = read_excel("./Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = cell_rows(2:549)) %>%
+  janitor::clean_names() %>%
+  select(dumpster:homes_powered)
+```
+
