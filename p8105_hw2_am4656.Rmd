@@ -1,0 +1,23 @@
+---
+title: "p8105_hw2_am4656"
+author: "Aaron Mittel"
+date: "2022-10-04"
+output: github_document
+---
+
+```{r setup, echo=FALSE, message = FALSE}
+library(tidyverse)
+library(dplyr)
+```
+
+# Problem 1
+_Importing "NYC_Transit_and_Subway_Entrance_and_Exit_Data.csv" from a relative file path to my working directory, cleaning column names, and then selecting for only "line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance" by selecting for the range of columns incoprorating those variables and removing unwanted variables. Then, converting the entry variable from character (YES vs NO) to a logical variable using "ifelse" and then removing the original entry variable (i.e. the character version, leaving the logical version)._
+
+```{r data input, echo = FALSE, message = FALSE}
+transit_data = read_csv(file = "./NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  janitor::clean_names() %>%
+  select(line:ada, -exit_only, -staffing, -staff_hours) %>%
+  mutate(entry_logical = ifelse(entry=="YES",1,0)) %>%
+  select(-entry)
+```
+
