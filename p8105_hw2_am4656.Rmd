@@ -70,13 +70,46 @@ pivot_longer(
 
 Thus, there are only **17** stations that serve the A train that are ADA compliant.
 
+
 ## Problem 2
 
-_Reading Mr. Trash Wheel into R Studio, self-named first sheet in the Excel file, skipping the first row (which is just an image in the original Excel file) and the last row (which appears to be summed column values), using reasonable variable names, omitting rows that do not include dumpster-specific data._
+_Reading Mr. Trash Wheel into the R Project, the self-named first sheet in the Excel file. We must skip the first row (which is just an image in the original Excel file) and the last row (which appears to be summed column values) to omit rows that do not include dumpster-specific data. Variable names are largely reasonable, though we must add a variable to distinguish this data from the additional Professor Trash Wheel data that will be added in the next step. We convert the `sports_balls` variable to an integer and also change the `year` variable to numeric type, instead of character, so that it may be joined with Professor Trash Wheel._
 
-```{r problem 2 data input, echo = FALSE, message = FALSE}
+```{r mr trash wheel data input, echo = FALSE, message = FALSE}
 mr_trash_wheel = read_excel("./Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = cell_rows(2:549)) %>%
   janitor::clean_names() %>%
-  select(dumpster:homes_powered)
+  select(dumpster:homes_powered) %>%
+  mutate(wheel = "mister") %>%
+  mutate(sports_balls = as.integer(sports_balls)) %>%
+  mutate(year = as.numeric(year))
 ```
 
+_Reading Professor Trash Wheel into the R Project in a comparable manner as above._
+
+```{r professor trash wheel data input, echo = FALSE, message = FALSE}
+dr_trash_wheel = read_excel("./Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = cell_rows(2:96)) %>%
+  janitor::clean_names() %>% 
+  select(dumpster:homes_powered) %>%
+  mutate(wheel = "doctor")
+```
+
+_Stacking Mr. Trash Wheel and Professor Trash Wheel and relocating the `wheel` and `dumpster` variables to the left side of the dataset for easy viewing._
+
+```{r stacking mr and dr trash wheel, echo = FALSE, message = FALSE}
+trash_wheels = 
+  bind_rows(mr_trash_wheel, dr_trash_wheel) %>%
+  relocate(wheel,dumpster)
+
+trash_wheels
+```
+
+There are **`r ncol(trash_wheels)` columns** and **`r nrow(trash_wheels)` rows** in this combined dataset.
+
+Key variables of interest include the specific trash wheel, either `mister` or `doctor`, `weight_tons`, and quantities of commonly collected items, including `cigarette_butts`, `chip_bags`, and other similar items. It is worth noting that `sports_balls` are collected (or recorded) by Mr. Trash Wheel but not by Professor Trash Wheel.
+
+* The total weight of trash collected by Professor Trash Wheel was **`r sum(trash_wheels %>% filter(wheel == "doctor") %>% pull(weight_tons))` tons**.
+
+* The total number of sports balls collected by Mr. Trash Wheel in 2020 was **`r trash_wheels %>% filter(wheel == "mister", year == "2020") %>% pull(sports_balls) %>% sum`**.
+
+
+# Problem 3
