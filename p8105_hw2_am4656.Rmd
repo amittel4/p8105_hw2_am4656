@@ -113,3 +113,77 @@ Key variables of interest include the specific trash wheel, either `mister` or `
 
 
 # Problem 3
+
+_Importing pols_data.csv and cleaning it._
+
+```{r pols data, echo = FALSE, message = FALSE}
+pols_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>%
+janitor::clean_names() %>%
+  separate(1,sep="-", into = c("year","month","day")) %>%
+  mutate(year = as.integer(year)) %>%
+  mutate(month = as.integer(month)) %>%
+  mutate(day = as.integer(day)) %>%
+  mutate(
+    month = recode(month,`1` = "january", `2` = "february", `3` = "march", `4` = "april", `5` = "may", `6` = "june", `7` = "july", `8` = "august", `9` = "september", `10` = "october", `11` = "november", `12` = "december")
+  ) %>%
+  mutate(president = ifelse(prez_dem == "1", "dem","gop")) %>%
+  select(- day, -prez_dem, -prez_gop) %>%
+  relocate(year,month)
+
+pols_data
+```
+
+_Importing snp.csv and cleaning it._
+
+```{r snp data, echo = FALSE, message = FALSE}
+snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv") %>%
+janitor::clean_names() %>%
+separate(1,sep="/", into = c("month","day","year")) %>%
+  mutate(day = as.integer(day)) %>%
+  mutate(month = as.integer(month)) %>%
+  mutate(year = as.integer(year)) %>%
+  mutate(year = ifelse(year < 16, year+2000, year+1900)) %>%
+mutate(
+    month = recode(month,`1` = "january", `2` = "february", `3` = "march", `4` = "april", `5` = "may", `6` = "june", `7` = "july", `8` = "august", `9` = "september", `10` = "october", `11` = "november", `12` = "december")
+  ) %>%
+  relocate(year,month)
+
+snp_data
+```
+
+_Now importing and cleaning unemployment.csv_
+
+```{r unemployment data, echo = FALSE, message = FALSE}
+unemployment_data = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") %>%
+janitor::clean_names() %>%
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to = "unemployment_rate") %>%
+  mutate(month = recode(month,`jan` ="january", `feb` = "february", `mar` = "march", `apr` = "april", `may` = "may", `jun` = "june", `jul` = "july", `aug` = "august", `sep` = "september" , `oct` = "october", `nov` = "november", `dec` = "december")
+  )
+
+unemployment_data
+```
+
+_Merging snp into pols to create a new dataframe, pols_and_snp._
+
+```{r pols and snp merge, echo = FALSE, messaage = FALSE}
+pols_and_snp = 
+  left_join(pols_data, snp_data, by = "year","month")
+
+pols_and_snp
+```
+
+_Merging unemployment in the result of merging snp into pols to create a large and final dataframe, economic_data._
+
+```{r merging all three, echo = FALSE, message = FALSE}
+economic_data = 
+  left_join(pols_and_snp, unemployment_data, by = "year","month")
+
+economic_data
+```
+
+These datasets contained information related to various aspects of the economy over a wide variety of years. The first, pols_data, included political data (elected president's party, for instance) by year and month. The second, snp_data, included data related to stock market total values by year and month. The third, unemployment_data, included data related to the unemployment rate by year and month.
+
+The final joined complete dataset contains **`r nrow(economic_data)`** rows and **`r ncol(economic_data)`** columns. Key variables include those collated from the individual datasets, such that a stock market value on a given date can be observed along with the elected representative's political party, unemployment rates at the time, and others. The data ranges from years **1947 - 2015**.
